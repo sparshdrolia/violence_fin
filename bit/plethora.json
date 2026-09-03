@@ -17,8 +17,7 @@
         "format": "integer",
         "period": "all_time",
         "scope": "global",
-        "dedupe": "best_per_user",
-        "run": { "kind": "timed" }
+        "dedupe": "best_per_user"
       }
     },
     "tallies": {},
