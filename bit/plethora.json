@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "runtime": "plethora-bit@2",
+  "entry": "main.js",
+  "title": "Frosty's Dinner Rush",
+  "description": "Seat penguin diners, take their orders, and race to plate fish, sushi, soda and cake before their patience melts away. A tap-to-serve time-management rush inspired by classic penguin restaurant games.",
+  "tags": ["game", "time-management", "penguin", "restaurant", "arcade", "tap"],
+  "permissions": ["haptics", "storage"],
+  "dependencies": []
+}
