@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "runtime": "plethora-bit@2",
+  "entry": "main.js",
+  "title": "Vector Zero",
+  "description": "Evolve a pathogen from a single carrier into a global extinction event. Spend DNA on transmission, symptoms, lethality and stealth traits, spread across 32 nations, and outrun the cure.",
+  "tags": ["strategy", "simulation", "outbreak", "world", "evolve", "pandemic"],
+  "permissions": ["backgroundMusic", "haptics", "storage"],
+  "dependencies": [],
+  "memory": {
+    "local": {},
+    "records": {
+      "extinction_days": {
+        "label": "Fastest Extinction",
+        "valueType": "number",
+        "order": "asc",
+        "format": "integer",
+        "period": "all_time",
+        "scope": "global",
+        "dedupe": "best_per_user",
+        "run": { "kind": "timed" }
+      }
+    },
+    "tallies": {},
+    "worlds": {}
+  }
+}
