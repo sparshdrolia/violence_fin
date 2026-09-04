@@ -1,5 +1,13 @@
 // Vector Zero — evolve a pathogen, spread it across the world, outrun the cure.
 // Original design & implementation for the Plethora Bit runtime (plethora-bit@2).
+//
+// Country roster and the symptom-trait taxonomy were expanded with reference to
+// omenking/pandemic (https://github.com/omenking/pandemic, MIT License,
+// Copyright (c) 2013 Andrew Brown) — a fan project inspired by the same genre
+// of outbreak-simulation game. No code, art, or text from that project is
+// reproduced here; population figures, coordinates, trait costs/effects, the
+// disease-kind system, and all game logic and rendering are original to this
+// bit. See NOTICE in this repo for the attribution this license requires.
 
 (function () {
   "use strict";
@@ -12,66 +20,146 @@
     { id: "usa", name: "United States", x: 0.20, y: 0.35, pop: 335, wealth: 3, climate: "temperate" },
     { id: "can", name: "Canada", x: 0.19, y: 0.20, pop: 39, wealth: 3, climate: "cold" },
     { id: "mex", name: "Mexico", x: 0.18, y: 0.45, pop: 129, wealth: 2, climate: "arid" },
-    { id: "bra", name: "Brazil", x: 0.32, y: 0.63, pop: 216, wealth: 2, climate: "tropical" },
-    { id: "arg", name: "Argentina", x: 0.29, y: 0.78, pop: 46, wealth: 2, climate: "temperate" },
+    { id: "cub", name: "Cuba", x: 0.21, y: 0.44, pop: 11, wealth: 1, climate: "tropical" },
+    { id: "dom", name: "Dominican Republic", x: 0.23, y: 0.46, pop: 11, wealth: 1, climate: "tropical" },
+    { id: "gtm", name: "Guatemala", x: 0.17, y: 0.47, pop: 18, wealth: 1, climate: "tropical" },
+
     { id: "col", name: "Colombia", x: 0.24, y: 0.55, pop: 52, wealth: 1, climate: "tropical" },
+    { id: "ven", name: "Venezuela", x: 0.26, y: 0.52, pop: 28, wealth: 1, climate: "tropical" },
+    { id: "per", name: "Peru", x: 0.24, y: 0.63, pop: 34, wealth: 1, climate: "temperate" },
+    { id: "bra", name: "Brazil", x: 0.32, y: 0.62, pop: 216, wealth: 2, climate: "tropical" },
+    { id: "chl", name: "Chile", x: 0.26, y: 0.78, pop: 19, wealth: 2, climate: "temperate" },
+    { id: "arg", name: "Argentina", x: 0.29, y: 0.78, pop: 46, wealth: 2, climate: "temperate" },
+    { id: "bol", name: "Bolivia", x: 0.27, y: 0.65, pop: 12, wealth: 1, climate: "tropical" },
+
     { id: "gbr", name: "United Kingdom", x: 0.47, y: 0.22, pop: 68, wealth: 3, climate: "temperate" },
+    { id: "irl", name: "Ireland", x: 0.45, y: 0.22, pop: 5, wealth: 3, climate: "temperate" },
     { id: "fra", name: "France", x: 0.49, y: 0.27, pop: 68, wealth: 3, climate: "temperate" },
+    { id: "esp", name: "Spain", x: 0.46, y: 0.32, pop: 47, wealth: 3, climate: "arid" },
+    { id: "prt", name: "Portugal", x: 0.44, y: 0.32, pop: 10, wealth: 2, climate: "temperate" },
     { id: "deu", name: "Germany", x: 0.51, y: 0.24, pop: 84, wealth: 3, climate: "temperate" },
-    { id: "esp", name: "Spain", x: 0.46, y: 0.31, pop: 47, wealth: 3, climate: "arid" },
+    { id: "nld", name: "Netherlands", x: 0.50, y: 0.23, pop: 18, wealth: 3, climate: "temperate" },
+    { id: "bel", name: "Belgium", x: 0.49, y: 0.24, pop: 12, wealth: 3, climate: "temperate" },
+    { id: "che", name: "Switzerland", x: 0.50, y: 0.26, pop: 9, wealth: 3, climate: "cold" },
     { id: "ita", name: "Italy", x: 0.51, y: 0.30, pop: 59, wealth: 3, climate: "temperate" },
+    { id: "aut", name: "Austria", x: 0.52, y: 0.25, pop: 9, wealth: 3, climate: "cold" },
     { id: "pol", name: "Poland", x: 0.52, y: 0.23, pop: 37, wealth: 2, climate: "cold" },
+    { id: "cze", name: "Czechia", x: 0.51, y: 0.24, pop: 11, wealth: 2, climate: "cold" },
+    { id: "hun", name: "Hungary", x: 0.52, y: 0.26, pop: 10, wealth: 2, climate: "temperate" },
+    { id: "rou", name: "Romania", x: 0.54, y: 0.26, pop: 19, wealth: 2, climate: "cold" },
+    { id: "grc", name: "Greece", x: 0.53, y: 0.30, pop: 10, wealth: 2, climate: "arid" },
     { id: "swe", name: "Sweden", x: 0.51, y: 0.16, pop: 10, wealth: 3, climate: "cold" },
+    { id: "nor", name: "Norway", x: 0.50, y: 0.14, pop: 5, wealth: 3, climate: "cold" },
+    { id: "fin", name: "Finland", x: 0.53, y: 0.14, pop: 6, wealth: 3, climate: "cold" },
+    { id: "dnk", name: "Denmark", x: 0.50, y: 0.20, pop: 6, wealth: 3, climate: "cold" },
+    { id: "ukr", name: "Ukraine", x: 0.56, y: 0.22, pop: 38, wealth: 1, climate: "cold" },
+    { id: "srb", name: "Serbia", x: 0.53, y: 0.27, pop: 7, wealth: 2, climate: "temperate" },
     { id: "rus", name: "Russia", x: 0.65, y: 0.18, pop: 144, wealth: 2, climate: "cold" },
+
     { id: "tur", name: "Turkey", x: 0.55, y: 0.31, pop: 85, wealth: 2, climate: "temperate" },
     { id: "egy", name: "Egypt", x: 0.55, y: 0.41, pop: 112, wealth: 1, climate: "arid" },
+    { id: "mar", name: "Morocco", x: 0.46, y: 0.39, pop: 38, wealth: 1, climate: "arid" },
+    { id: "dza", name: "Algeria", x: 0.48, y: 0.40, pop: 45, wealth: 1, climate: "arid" },
+    { id: "sau", name: "Saudi Arabia", x: 0.58, y: 0.42, pop: 36, wealth: 3, climate: "arid" },
+    { id: "irq", name: "Iraq", x: 0.58, y: 0.37, pop: 44, wealth: 1, climate: "arid" },
+    { id: "irn", name: "Iran", x: 0.60, y: 0.37, pop: 89, wealth: 1, climate: "arid" },
+    { id: "isr", name: "Israel", x: 0.56, y: 0.38, pop: 9, wealth: 3, climate: "arid" },
+    { id: "are", name: "United Arab Emirates", x: 0.60, y: 0.43, pop: 10, wealth: 3, climate: "arid" },
+    { id: "yem", name: "Yemen", x: 0.59, y: 0.45, pop: 34, wealth: 1, climate: "arid" },
+    { id: "syr", name: "Syria", x: 0.57, y: 0.36, pop: 21, wealth: 1, climate: "arid" },
+
     { id: "nga", name: "Nigeria", x: 0.50, y: 0.50, pop: 223, wealth: 1, climate: "tropical" },
     { id: "cod", name: "DR Congo", x: 0.52, y: 0.56, pop: 102, wealth: 1, climate: "tropical" },
     { id: "ken", name: "Kenya", x: 0.56, y: 0.55, pop: 55, wealth: 1, climate: "tropical" },
+    { id: "eth", name: "Ethiopia", x: 0.57, y: 0.52, pop: 126, wealth: 1, climate: "tropical" },
+    { id: "tza", name: "Tanzania", x: 0.56, y: 0.59, pop: 67, wealth: 1, climate: "tropical" },
+    { id: "uga", name: "Uganda", x: 0.55, y: 0.53, pop: 48, wealth: 1, climate: "tropical" },
+    { id: "gha", name: "Ghana", x: 0.48, y: 0.51, pop: 34, wealth: 1, climate: "tropical" },
+    { id: "sdn", name: "Sudan", x: 0.55, y: 0.47, pop: 48, wealth: 1, climate: "arid" },
     { id: "zaf", name: "South Africa", x: 0.53, y: 0.73, pop: 60, wealth: 2, climate: "temperate" },
-    { id: "sau", name: "Saudi Arabia", x: 0.58, y: 0.42, pop: 36, wealth: 3, climate: "arid" },
-    { id: "irn", name: "Iran", x: 0.60, y: 0.37, pop: 89, wealth: 1, climate: "arid" },
+
     { id: "pak", name: "Pakistan", x: 0.65, y: 0.40, pop: 240, wealth: 1, climate: "arid" },
     { id: "ind", name: "India", x: 0.68, y: 0.45, pop: 1428, wealth: 1, climate: "tropical" },
+    { id: "bgd", name: "Bangladesh", x: 0.71, y: 0.45, pop: 173, wealth: 1, climate: "tropical" },
+    { id: "npl", name: "Nepal", x: 0.69, y: 0.42, pop: 30, wealth: 1, climate: "cold" },
+    { id: "lka", name: "Sri Lanka", x: 0.69, y: 0.50, pop: 22, wealth: 1, climate: "tropical" },
+    { id: "kaz", name: "Kazakhstan", x: 0.66, y: 0.30, pop: 20, wealth: 2, climate: "cold" },
+    { id: "uzb", name: "Uzbekistan", x: 0.64, y: 0.34, pop: 35, wealth: 1, climate: "arid" },
+    { id: "afg", name: "Afghanistan", x: 0.63, y: 0.38, pop: 41, wealth: 1, climate: "arid" },
+    { id: "mng", name: "Mongolia", x: 0.75, y: 0.28, pop: 3, wealth: 1, climate: "cold" },
+
     { id: "chn", name: "China", x: 0.75, y: 0.35, pop: 1411, wealth: 2, climate: "temperate" },
     { id: "jpn", name: "Japan", x: 0.85, y: 0.34, pop: 123, wealth: 3, climate: "temperate" },
     { id: "kor", name: "South Korea", x: 0.82, y: 0.35, pop: 52, wealth: 3, climate: "temperate" },
+    { id: "prk", name: "North Korea", x: 0.82, y: 0.32, pop: 26, wealth: 1, climate: "cold" },
+
     { id: "vnm", name: "Vietnam", x: 0.77, y: 0.46, pop: 98, wealth: 1, climate: "tropical" },
     { id: "tha", name: "Thailand", x: 0.75, y: 0.47, pop: 71, wealth: 1, climate: "tropical" },
+    { id: "mmr", name: "Myanmar", x: 0.73, y: 0.45, pop: 54, wealth: 1, climate: "tropical" },
+    { id: "khm", name: "Cambodia", x: 0.76, y: 0.49, pop: 17, wealth: 1, climate: "tropical" },
+    { id: "lao", name: "Laos", x: 0.75, y: 0.45, pop: 8, wealth: 1, climate: "tropical" },
+    { id: "mys", name: "Malaysia", x: 0.76, y: 0.52, pop: 34, wealth: 2, climate: "tropical" },
+    { id: "sgp", name: "Singapore", x: 0.77, y: 0.53, pop: 6, wealth: 3, climate: "tropical" },
     { id: "phl", name: "Philippines", x: 0.80, y: 0.48, pop: 117, wealth: 1, climate: "tropical" },
     { id: "idn", name: "Indonesia", x: 0.78, y: 0.56, pop: 277, wealth: 1, climate: "tropical" },
-    { id: "aus", name: "Australia", x: 0.83, y: 0.72, pop: 26, wealth: 3, climate: "arid" }
+
+    { id: "aus", name: "Australia", x: 0.83, y: 0.72, pop: 26, wealth: 3, climate: "arid" },
+    { id: "nzl", name: "New Zealand", x: 0.87, y: 0.78, pop: 5, wealth: 3, climate: "temperate" }
   ];
 
+  var DISEASE_KINDS = [
+    { id: "virus", name: "Virus", blurb: "Spreads like wildfire, but hard to make truly lethal.", infMax: 3.2, letMax: 0.9, visMax: 1.6 },
+    { id: "bacteria", name: "Bacteria", blurb: "Balanced and adaptable. No sharp edge, no sharp weakness.", infMax: 2.3, letMax: 1.5, visMax: 1.5 },
+    { id: "parasite", name: "Parasite", blurb: "Slow to spread, but devastating — and easy to hide.", infMax: 1.4, letMax: 2.2, visMax: 1.1 }
+  ];
+
+  var NAME_PRESETS = ["Kestrel-9", "Aurora Flu", "Meridian Strain", "Obsidian Fever", "Halcyon-7", "Thornwood Contagion", "Vesper Plague", "Ironbark-X"];
+
   // ---------------------------------------------------------------------
-  // Trait tree — four disciplines, each a short prerequisite chain.
+  // Trait tree — four disciplines. Symptom names follow a broad, standard
+  // clinical vocabulary; costs/effects and every other system here are
+  // original to this bit.
   // ---------------------------------------------------------------------
   var TRAITS = [
-    // Transmission
-    { id: "water1", cat: "transmission", name: "Waterborne I", desc: "Spreads through contaminated water.", cost: 2, req: null, transmission: 0.15 },
-    { id: "water2", cat: "transmission", name: "Waterborne II", desc: "Survives water treatment.", cost: 4, req: "water1", transmission: 0.15 },
-    { id: "water3", cat: "transmission", name: "Waterborne III", desc: "Thrives in any water source.", cost: 8, req: "water2", transmission: 0.20 },
-    { id: "air1", cat: "transmission", name: "Airborne I", desc: "Rides on respiratory droplets.", cost: 3, req: null, transmission: 0.20 },
-    { id: "air2", cat: "transmission", name: "Airborne II", desc: "Lingers in the air far longer.", cost: 6, req: "air1", transmission: 0.20 },
-    { id: "air3", cat: "transmission", name: "Airborne III", desc: "True aerosol dispersal.", cost: 10, req: "air2", transmission: 0.25 },
-    { id: "insect", cat: "transmission", name: "Insect Vector", desc: "Mosquitoes carry it further.", cost: 5, req: null, transmission: 0.15 },
-    { id: "livestock", cat: "transmission", name: "Livestock Vector", desc: "Passes through farm animals.", cost: 4, req: null, transmission: 0.10 },
-    { id: "rodent", cat: "transmission", name: "Rodent Vector", desc: "Rats and mice spread it silently.", cost: 4, req: null, transmission: 0.10 },
+    // Transmission (feeds infectivity)
+    { id: "water1", cat: "transmission", name: "Waterborne I", desc: "Spreads through contaminated water.", cost: 2, req: null, infectivity: 0.15 },
+    { id: "water2", cat: "transmission", name: "Waterborne II", desc: "Survives water treatment.", cost: 4, req: "water1", infectivity: 0.15 },
+    { id: "water3", cat: "transmission", name: "Waterborne III", desc: "Thrives in any water source.", cost: 8, req: "water2", infectivity: 0.20 },
+    { id: "air1", cat: "transmission", name: "Airborne I", desc: "Rides on respiratory droplets.", cost: 3, req: null, infectivity: 0.20 },
+    { id: "air2", cat: "transmission", name: "Airborne II", desc: "Lingers in the air far longer.", cost: 6, req: "air1", infectivity: 0.20 },
+    { id: "air3", cat: "transmission", name: "Airborne III", desc: "True aerosol dispersal.", cost: 10, req: "air2", infectivity: 0.25 },
+    { id: "insect", cat: "transmission", name: "Insect Vector", desc: "Mosquitoes carry it further.", cost: 5, req: null, infectivity: 0.15 },
+    { id: "livestock", cat: "transmission", name: "Livestock Vector", desc: "Passes through farm animals.", cost: 4, req: null, infectivity: 0.10 },
+    { id: "rodent", cat: "transmission", name: "Rodent Vector", desc: "Rats and mice spread it silently.", cost: 4, req: null, infectivity: 0.10 },
 
-    // Symptoms
-    { id: "fever", cat: "symptoms", name: "Fever", desc: "Raises body temperature.", cost: 2, req: null, severity: 0.10, transmission: 0.05 },
-    { id: "cough", cat: "symptoms", name: "Coughing", desc: "Expels the pathogen on every breath.", cost: 2, req: null, transmission: 0.10, severity: 0.05 },
-    { id: "sneeze", cat: "symptoms", name: "Sneezing", desc: "An explosive transmission burst.", cost: 3, req: "cough", transmission: 0.15, severity: 0.05 },
-    { id: "nausea", cat: "symptoms", name: "Nausea", desc: "Weakens the host quickly.", cost: 3, req: null, transmission: 0.05, severity: 0.15 },
-    { id: "insomnia", cat: "symptoms", name: "Insomnia", desc: "A quiet symptom, easy to miss.", cost: 3, req: null, severity: 0.10, detection: -0.05 },
-    { id: "cysts", cat: "symptoms", name: "Cysts", desc: "Visible, painful, unmistakable.", cost: 5, req: "nausea", severity: 0.20 },
+    // Symptoms (mixed infectivity / lethality / visibility)
+    { id: "fever", cat: "symptoms", name: "Fever", desc: "Raises body temperature.", cost: 2, req: null, infectivity: 0.05, visibility: 0.10 },
+    { id: "cough", cat: "symptoms", name: "Coughing", desc: "Expels the pathogen on every breath.", cost: 2, req: null, infectivity: 0.10, visibility: 0.05 },
+    { id: "sneeze", cat: "symptoms", name: "Sneezing", desc: "An explosive transmission burst.", cost: 3, req: "cough", infectivity: 0.15, visibility: 0.05 },
+    { id: "sweating", cat: "symptoms", name: "Sweating", desc: "Damp surfaces carry it further.", cost: 2, req: null, infectivity: 0.05, visibility: 0.05 },
+    { id: "vomiting", cat: "symptoms", name: "Vomiting", desc: "Violent, contagious, and draining.", cost: 3, req: null, infectivity: 0.05, visibility: 0.15, lethality: 0.05 },
+    { id: "fatigue", cat: "symptoms", name: "Fatigue", desc: "Wears the host down over time.", cost: 2, req: null, visibility: 0.05, lethality: 0.05 },
+    { id: "diarrhea", cat: "symptoms", name: "Diarrhea", desc: "Rapidly contaminates its surroundings.", cost: 3, req: null, infectivity: 0.10, visibility: 0.10 },
+    { id: "nausea", cat: "symptoms", name: "Nausea", desc: "Weakens the host quickly.", cost: 3, req: null, infectivity: 0.05, visibility: 0.10 },
+    { id: "pulmonary_edema", cat: "symptoms", name: "Pulmonary Edema", desc: "The lungs begin to fill.", cost: 6, req: "vomiting", lethality: 0.15, visibility: 0.15 },
+    { id: "dementia", cat: "symptoms", name: "Dementia", desc: "Cognitive collapse, impossible to miss.", cost: 6, req: null, lethality: 0.10, visibility: 0.20 },
+    { id: "hypersensitivity", cat: "symptoms", name: "Hypersensitivity", desc: "Every contact becomes a transmission risk.", cost: 4, req: null, infectivity: 0.15, visibility: 0.10 },
+    { id: "ataxia", cat: "symptoms", name: "Ataxia", desc: "Loss of motor control.", cost: 5, req: null, lethality: 0.10, visibility: 0.15 },
+    { id: "kidney_failure", cat: "symptoms", name: "Kidney Failure", desc: "Toxins build up in the bloodstream.", cost: 7, req: "ataxia", lethality: 0.20, visibility: 0.15 },
+    { id: "depression", cat: "symptoms", name: "Depression", desc: "A quiet symptom, easy to miss.", cost: 4, req: null, visibility: 0.05, lethality: 0.05 },
+    { id: "hemorrhaging", cat: "symptoms", name: "Hemorrhaging", desc: "Internal bleeding accelerates spread.", cost: 8, req: null, lethality: 0.25, infectivity: 0.05, visibility: 0.20 },
+    { id: "liver_failure", cat: "symptoms", name: "Liver Failure", desc: "Systemic toxicity sets in.", cost: 8, req: "kidney_failure", lethality: 0.20, visibility: 0.15 },
+    { id: "heart_failure", cat: "symptoms", name: "Heart Failure", desc: "The final systemic collapse.", cost: 10, req: "liver_failure", lethality: 0.30, visibility: 0.20 },
+    { id: "blindness", cat: "symptoms", name: "Blindness", desc: "Visible, permanent, unmistakable.", cost: 5, req: null, visibility: 0.15, lethality: 0.05 },
+    { id: "hypotonia", cat: "symptoms", name: "Hypotonia", desc: "Muscle tone fails throughout the body.", cost: 4, req: null, lethality: 0.10, visibility: 0.05 },
+    { id: "encephalitis", cat: "symptoms", name: "Encephalitis", desc: "Brain inflammation, often fatal.", cost: 9, req: "dementia", lethality: 0.25, visibility: 0.20 },
 
-    // Lethality
+    // Lethality (structural, mostly hidden until late)
     { id: "necrosis1", cat: "lethality", name: "Necrosis I", desc: "Tissue begins to die.", cost: 4, req: null, lethality: 0.15 },
     { id: "necrosis2", cat: "lethality", name: "Necrosis II", desc: "Necrosis spreads rapidly.", cost: 7, req: "necrosis1", lethality: 0.20 },
-    { id: "organfail1", cat: "lethality", name: "Organ Failure I", desc: "Vital organs begin shutting down.", cost: 6, req: null, lethality: 0.20, severity: 0.10 },
-    { id: "organfail2", cat: "lethality", name: "Total Organ Failure", desc: "Systemic collapse.", cost: 12, req: "organfail1", lethality: 0.35, severity: 0.20 },
-    { id: "hemorrhage", cat: "lethality", name: "Hemorrhagic Fever", desc: "Internal bleeding accelerates spread.", cost: 8, req: null, lethality: 0.25, transmission: 0.05, severity: 0.20 },
+    { id: "organfail1", cat: "lethality", name: "Organ Failure I", desc: "Vital organs begin shutting down.", cost: 6, req: null, lethality: 0.20, visibility: 0.10 },
+    { id: "organfail2", cat: "lethality", name: "Total Organ Failure", desc: "Systemic collapse.", cost: 12, req: "organfail1", lethality: 0.35, visibility: 0.20 },
+    { id: "septic", cat: "lethality", name: "Septic Shock", desc: "The body turns on itself.", cost: 8, req: null, lethality: 0.25, infectivity: 0.05, visibility: 0.20 },
 
     // Abilities
     { id: "coldres", cat: "abilities", name: "Cold Resistance", desc: "Thrives in cold climates.", cost: 3, req: null, climate: "cold" },
@@ -94,8 +182,6 @@
     bg: "#070b12",
     ocean: "#0c1626",
     healthy: "#1f7a4d",
-    infected: "#e0a52c",
-    dead: "#8a1f2b",
     panel: "#0f1826",
     panelLine: "#233248",
     text: "#eaf1fb",
@@ -106,24 +192,55 @@
     btnActive: "#1f4a6b"
   };
 
+  // graded heat ramp echoing a choropleth outbreak map: healthy green through
+  // amber into an ever-darkening red/black as a country is consumed.
+  var HEAT_STOPS = [
+    [0.00, "#1f7a4d"],
+    [0.05, "#e0c22c"],
+    [0.20, "#e0a52c"],
+    [0.40, "#e0722c"],
+    [0.60, "#c1362b"],
+    [0.80, "#8a1f2b"],
+    [1.00, "#2a0a10"]
+  ];
+
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
   function lerp(a, b, t) { return a + (b - a) * t; }
+
+  function hex2rgb(h) {
+    h = h.replace("#", "");
+    return [parseInt(h.substr(0, 2), 16), parseInt(h.substr(2, 2), 16), parseInt(h.substr(4, 2), 16)];
+  }
+  function mixHex(h1, h2, t) {
+    var a = hex2rgb(h1), b = hex2rgb(h2);
+    return "rgb(" + Math.round(lerp(a[0], b[0], t)) + "," + Math.round(lerp(a[1], b[1], t)) + "," + Math.round(lerp(a[2], b[2], t)) + ")";
+  }
+  function heatColor(t) {
+    t = clamp(t, 0, 1);
+    for (var i = 0; i < HEAT_STOPS.length - 1; i++) {
+      var a = HEAT_STOPS[i], b = HEAT_STOPS[i + 1];
+      if (t >= a[0] && t <= b[0]) {
+        var span = b[0] - a[0] || 1;
+        return mixHex(a[1], b[1], (t - a[0]) / span);
+      }
+    }
+    return HEAT_STOPS[HEAT_STOPS.length - 1][1];
+  }
 
   function newState() {
     var countries = {};
     for (var i = 0; i < COUNTRIES.length; i++) {
       var c = COUNTRIES[i];
-      countries[c.id] = {
-        infected: 0,
-        dead: 0,
-        awareness: 0,
-        bordersClosed: false
-      };
+      countries[c.id] = { infected: 0, dead: 0, awareness: 0, bordersClosed: false };
     }
     return {
+      setupStep: "kind",
+      kind: null,
+      diseaseName: null,
       started: false,
       gameOver: false,
       won: false,
+      endReason: null,
       day: 0,
       dna: 4,
       owned: {},
@@ -140,7 +257,8 @@
       dragging: false,
       lastMilestone: 0,
       accMs: 0,
-      musicVol: 0.5
+      musicVol: 0.5,
+      bestDays: null
     };
   }
 
@@ -148,29 +266,55 @@
     for (var i = 0; i < TRAITS.length; i++) if (TRAITS[i].id === id) return TRAITS[i];
     return null;
   }
+  function kindById(id) {
+    for (var i = 0; i < DISEASE_KINDS.length; i++) if (DISEASE_KINDS[i].id === id) return DISEASE_KINDS[i];
+    return DISEASE_KINDS[0];
+  }
 
   function ownedStats(state) {
-    var s = { transmission: 0.05, severity: 0.05, lethality: 0.02, cureResist: 0, detection: 0, climates: {} };
+    var kind = kindById(state.kind);
+    var s = { infectivity: 0.05, visibility: 0.05, lethality: 0.02, cureResist: 0, detection: 0, climates: {} };
     for (var id in state.owned) {
       if (!state.owned[id]) continue;
       var t = traitById(id);
       if (!t) continue;
-      s.transmission += t.transmission || 0;
-      s.severity += t.severity || 0;
+      s.infectivity += t.infectivity || 0;
+      s.visibility += t.visibility || 0;
       s.lethality += t.lethality || 0;
       s.cureResist += t.cureResist || 0;
       s.detection += t.detection || 0;
       if (t.climate) s.climates[t.climate] = true;
     }
+    s.infectivity = clamp(s.infectivity, 0, kind.infMax);
+    s.lethality = clamp(s.lethality, 0, kind.letMax);
+    s.visibility = clamp(s.visibility, 0, kind.visMax);
     s.cureResist = clamp(s.cureResist, 0, 0.9);
     s.detection = clamp(s.detection, -0.8, 0.5);
     return s;
   }
 
+  function statsWithTrait(state, t) {
+    var saved = state.owned[t.id];
+    state.owned[t.id] = true;
+    var s = ownedStats(state);
+    if (saved) state.owned[t.id] = saved; else delete state.owned[t.id];
+    return s;
+  }
+
+  function traitIsUseful(state, t) {
+    var before = ownedStats(state);
+    var after = statsWithTrait(state, t);
+    return after.infectivity > before.infectivity + 1e-6 ||
+      after.lethality > before.lethality + 1e-6 ||
+      after.visibility > before.visibility + 1e-6 ||
+      !!t.cureResist || !!t.detection || !!t.climate;
+  }
+
   function canBuy(state, t) {
     if (state.owned[t.id]) return false;
     if (t.req && !state.owned[t.req]) return false;
-    return state.dna >= t.cost;
+    if (state.dna < t.cost) return false;
+    return traitIsUseful(state, t);
   }
 
   function totalPop() {
@@ -192,7 +336,7 @@
 
   function simDay(state) {
     var stats = ownedStats(state);
-    var t = stats.transmission;
+    var t = stats.infectivity;
     var tally = worldTally(state);
     var worldInfectedFrac = tally.infected / TOTAL_POP;
 
@@ -208,18 +352,16 @@
 
       var healthcare = 0.5 + c.wealth * 0.3;
       var deathRate = stats.lethality / healthcare * (1 - state.cureProgress * 0.9);
-      var dailyDeaths = cs.infected * clamp(deathRate, 0, 0.5);
-      dailyDeaths = Math.min(dailyDeaths, cs.infected);
+      var dailyDeaths = Math.min(cs.infected, cs.infected * clamp(deathRate, 0, 0.5));
       cs.dead += dailyDeaths;
       cs.infected -= dailyDeaths;
 
       var detectSpeed = 0.5 + c.wealth * 0.35;
-      cs.awareness += (cs.infected / c.pop) * stats.severity * detectSpeed * 0.06 * (1 - clamp(stats.detection + 0.8, 0, 1.3) + 0.3);
+      cs.awareness += (cs.infected / c.pop) * stats.visibility * detectSpeed * 0.06 * (1 - clamp(stats.detection + 0.8, 0, 1.3) + 0.3);
       cs.awareness = clamp(cs.awareness, 0, 1);
       if (cs.awareness > 0.6) cs.bordersClosed = true;
     }
 
-    // cross-border spread
     for (var a = 0; a < COUNTRIES.length; a++) {
       var A = COUNTRIES[a];
       var As = state.countries[A.id];
@@ -234,13 +376,10 @@
         var dist = Math.sqrt(dx * dx + dy * dy);
         var travel = (A.wealth + B.wealth) / 6;
         var chance = t * travel * (1 / (1 + dist * 9)) * infectedFracA * (Bs.bordersClosed ? 0.15 : 1) * 0.6;
-        if (Math.random() < chance) {
-          Bs.infected = 1;
-        }
+        if (Math.random() < chance) Bs.infected = 1;
       }
     }
 
-    // cure research
     var awarenessAvg = 0;
     for (var k = 0; k < COUNTRIES.length; k++) {
       var kc = COUNTRIES[k];
@@ -251,24 +390,25 @@
     state.cureProgress = clamp(state.cureProgress, 0, 1);
 
     if (state.cureProgress >= 1) {
-      for (var m = 0; m < COUNTRIES.length; m++) {
-        var mc = state.countries[COUNTRIES[m].id];
-        mc.infected *= 0.82;
-      }
+      for (var m = 0; m < COUNTRIES.length; m++) state.countries[COUNTRIES[m].id].infected *= 0.82;
     }
 
-    // DNA accrual
     state.dna += 0.4 + worldInfectedFrac * 4;
-
     state.day += 1;
 
     var newTally = worldTally(state);
     if (newTally.dead >= TOTAL_POP * 0.999) {
       state.gameOver = true;
       state.won = true;
-    } else if (state.cureProgress >= 1 && newTally.infected < TOTAL_POP * 0.0005 && newTally.dead < TOTAL_POP * 0.999) {
+      state.endReason = "extinction";
+    } else if (state.day > 5 && newTally.infected < 0.05) {
+      // Every infected country has decayed below the cross-border spread
+      // threshold (see the `As.infected < 0.5` guard above): the outbreak
+      // has nowhere left to go, cured or not. Without this the game can
+      // soft-lock forever on a weak strain that never reaches a verdict.
       state.gameOver = true;
       state.won = false;
+      state.endReason = state.cureProgress >= 0.5 ? "cured" : "fizzled";
     }
   }
 
@@ -281,15 +421,11 @@
     meta: { name: "Vector Zero" },
     async init(ctx) {
       var surface = ctx.createCanvas2D({ touchAction: "none" });
-      var canvasEl = surface && (surface.canvas || surface.element || surface.el) || surface;
+      var canvasEl = (surface && (surface.canvas || surface.element || surface.el)) || surface;
       var g = (surface && (surface.ctx || surface.context)) || (canvasEl && canvasEl.getContext && canvasEl.getContext("2d"));
 
       var state = newState();
-
-      try {
-        var saved = ctx.storage && ctx.storage.get("vz_best_days");
-        state.bestDays = saved || null;
-      } catch (e) { state.bestDays = null; }
+      try { state.bestDays = ctx.storage && ctx.storage.get("vz_best_days"); } catch (e) {}
 
       function W() { return ctx.width || (canvasEl && canvasEl.width) || 360; }
       function H() { return ctx.height || (canvasEl && canvasEl.height) || 640; }
@@ -303,36 +439,13 @@
         var mh = mapBottom() - mapTop;
         return { x: pad + c.x * (W() - pad * 2), y: mapTop + c.y * mh };
       }
-
-      function countryRadius(c) {
-        return clamp(Math.sqrt(c.pop) * 0.85, 4, 26);
-      }
-
+      function countryRadius(c) { return clamp(Math.sqrt(c.pop) * 0.85, 3.5, 24); }
       function countryColor(c, cs) {
-        var deadFrac = cs.dead / c.pop;
-        var infFrac = cs.infected / c.pop;
-        if (deadFrac > 0.01) {
-          return mixHex(COLOR.infected, COLOR.dead, clamp(deadFrac * 3, 0, 1));
-        }
-        if (infFrac > 0.005) {
-          return mixHex(COLOR.healthy, COLOR.infected, clamp(infFrac * 4, 0, 1));
-        }
-        return COLOR.healthy;
+        var consumedFrac = (cs.infected + cs.dead) / c.pop;
+        var deadShare = cs.dead / Math.max(cs.infected + cs.dead, 0.0001);
+        return heatColor(consumedFrac * (0.4 + 0.6 * deadShare));
       }
 
-      function hex2rgb(h) {
-        h = h.replace("#", "");
-        return [parseInt(h.substr(0, 2), 16), parseInt(h.substr(2, 2), 16), parseInt(h.substr(4, 2), 16)];
-      }
-      function mixHex(h1, h2, t) {
-        var a = hex2rgb(h1), b = hex2rgb(h2);
-        var r = Math.round(lerp(a[0], b[0], t));
-        var gc = Math.round(lerp(a[1], b[1], t));
-        var bl = Math.round(lerp(a[2], b[2], t));
-        return "rgb(" + r + "," + gc + "," + bl + ")";
-      }
-
-      // --- hit regions, rebuilt each render ---
       var hitRegions = [];
       function hit(x0, y0, x1, y1, fn) { hitRegions.push({ x0: x0, y0: y0, x1: x1, y1: y1, fn: fn }); }
 
@@ -345,7 +458,6 @@
         g.arcTo(x, y, x + w, y, r);
         g.closePath();
       }
-
       function drawButton(x, y, w, h, label, active, disabled) {
         g.fillStyle = disabled ? "#101a26" : (active ? COLOR.btnActive : COLOR.btn);
         roundRect(x, y, w, h, 8);
@@ -357,6 +469,14 @@
         g.fillText(label, x + w / 2, y + h / 2 + 1);
         return { x0: x, y0: y, x1: x + w, y1: y + h };
       }
+      function drawBar(x, y, w, h, frac, color) {
+        g.fillStyle = "#1a2536";
+        roundRect(x, y, w, h, h / 2);
+        g.fill();
+        g.fillStyle = color;
+        roundRect(x, y, Math.max(h, w * clamp(frac, 0, 1)), h, h / 2);
+        g.fill();
+      }
 
       function render() {
         var w = W(), h = H();
@@ -365,7 +485,7 @@
         hitRegions.length = 0;
 
         if (!state.started) {
-          renderMenu(w, h);
+          renderSetup(w, h);
         } else {
           renderHud(w, h);
           if (state.activeTab === "map") renderMap(w, h);
@@ -376,17 +496,97 @@
         }
       }
 
-      function renderMenu(w, h) {
+      function renderSetup(w, h) {
         g.fillStyle = COLOR.text;
-        g.font = "700 26px sans-serif";
+        g.font = "700 24px sans-serif";
         g.textAlign = "center";
-        g.fillText("VECTOR ZERO", w / 2, h * 0.16);
+        g.fillText("VECTOR ZERO", w / 2, h * 0.10);
         g.fillStyle = COLOR.dim;
-        g.font = "13px sans-serif";
-        g.fillText("Evolve a pathogen. Spread it worldwide.", w / 2, h * 0.16 + 26);
-        g.fillText("Outrun the cure.", w / 2, h * 0.16 + 44);
+        g.font = "12px sans-serif";
+        g.fillText("Evolve a pathogen. Spread it worldwide. Outrun the cure.", w / 2, h * 0.10 + 22);
 
-        // mini map for patient-zero selection
+        if (state.setupStep === "kind") renderStepKind(w, h);
+        else if (state.setupStep === "name") renderStepName(w, h);
+        else renderStepZero(w, h);
+
+        if (state.bestDays) {
+          g.fillStyle = COLOR.dim;
+          g.font = "11px sans-serif";
+          g.fillText("Best extinction: " + state.bestDays + " days", w / 2, h - 16 - safeBottom());
+        }
+      }
+
+      function renderStepKind(w, h) {
+        g.fillStyle = COLOR.dim;
+        g.font = "12px sans-serif";
+        g.fillText("Step 1 — choose your pathogen", w / 2, h * 0.20);
+
+        var top = h * 0.24, cardH = 84, gap = 12;
+        for (var i = 0; i < DISEASE_KINDS.length; i++) {
+          var k = DISEASE_KINDS[i];
+          var y = top + i * (cardH + gap);
+          var active = state.kind === k.id;
+          g.fillStyle = active ? "#123a2e" : COLOR.panel;
+          roundRect(24, y, w - 48, cardH, 10);
+          g.fill();
+          g.strokeStyle = active ? COLOR.accent : COLOR.panelLine;
+          g.lineWidth = active ? 2 : 1;
+          roundRect(24, y, w - 48, cardH, 10);
+          g.stroke();
+
+          g.textAlign = "left";
+          g.fillStyle = COLOR.text;
+          g.font = "700 15px sans-serif";
+          g.fillText(k.name, 38, y + 26);
+          g.fillStyle = COLOR.dim;
+          g.font = "11px sans-serif";
+          wrapText(k.blurb, 38, y + 44, w - 90, 2);
+
+          hit(24, y, w - 24, y + cardH, (function (id) {
+            return function () { state.kind = id; try { ctx.platform.haptic("light"); } catch (e) {} };
+          })(k.id));
+        }
+
+        var by = top + DISEASE_KINDS.length * (cardH + gap) + 8;
+        var bw = Math.min(220, w - 60);
+        var region = drawButton(w / 2 - bw / 2, by, bw, 46, "NEXT", !!state.kind, !state.kind);
+        if (state.kind) hit(region.x0, region.y0, region.x1, region.y1, function () { state.setupStep = "name"; });
+      }
+
+      function renderStepName(w, h) {
+        g.fillStyle = COLOR.dim;
+        g.font = "12px sans-serif";
+        g.textAlign = "center";
+        g.fillText("Step 2 — name your pathogen", w / 2, h * 0.20);
+
+        var top = h * 0.24;
+        var cols = 2, cw = (w - 60) / cols, ch = 44, gap = 10;
+        for (var i = 0; i < NAME_PRESETS.length; i++) {
+          var col = i % cols, row = Math.floor(i / cols);
+          var x = 24 + col * (cw + gap);
+          var y = top + row * (ch + gap);
+          var active = state.diseaseName === NAME_PRESETS[i];
+          var region = drawButton(x, y, cw, ch, NAME_PRESETS[i], active);
+          hit(region.x0, region.y0, region.x1, region.y1, (function (n) {
+            return function () { state.diseaseName = n; };
+          })(NAME_PRESETS[i]));
+        }
+
+        var by = top + Math.ceil(NAME_PRESETS.length / cols) * (ch + gap) + 10;
+        var bw = Math.min(220, w - 60);
+        var region2 = drawButton(w / 2 - bw / 2, by, bw, 46, "NEXT", !!state.diseaseName, !state.diseaseName);
+        if (state.diseaseName) hit(region2.x0, region2.y0, region2.x1, region2.y1, function () { state.setupStep = "zero"; });
+
+        var back = drawButton(24, by, 70, 46, "BACK", false);
+        hit(back.x0, back.y0, back.x1, back.y1, function () { state.setupStep = "kind"; });
+      }
+
+      function renderStepZero(w, h) {
+        g.fillStyle = COLOR.dim;
+        g.font = "12px sans-serif";
+        g.textAlign = "center";
+        g.fillText("Step 3 — choose patient zero", w / 2, h * 0.20);
+
         var top = h * 0.24, bot = h * 0.68;
         var pad = 14;
         for (var i = 0; i < COUNTRIES.length; i++) {
@@ -399,16 +599,9 @@
           g.arc(px, py, r, 0, Math.PI * 2);
           g.fillStyle = state.patientZero === c.id ? COLOR.accent : COLOR.healthy;
           g.fill();
-          if (state.patientZero === c.id) {
-            g.lineWidth = 2;
-            g.strokeStyle = "#ffffff";
-            g.stroke();
-          }
+          if (state.patientZero === c.id) { g.lineWidth = 2; g.strokeStyle = "#ffffff"; g.stroke(); }
           hit(px - r - 6, py - r - 6, px + r + 6, py + r + 6, (function (id) {
-            return function () {
-              state.patientZero = id;
-              try { ctx.platform.haptic("light"); } catch (e) {}
-            };
+            return function () { state.patientZero = id; try { ctx.platform.haptic("light"); } catch (e) {} };
           })(c.id));
         }
 
@@ -423,16 +616,12 @@
           hit(region.x0, region.y0, region.x1, region.y1, function () {
             state.started = true;
             state.countries[state.patientZero].infected = 1;
-            try { ctx.platform.start({ patientZero: state.patientZero }); } catch (e) {}
+            try { ctx.platform.start({ kind: state.kind, name: state.diseaseName, patientZero: state.patientZero }); } catch (e) {}
             try { ctx.music.play(); state.musicVol = 0.35; ctx.music.setVolume(0.35); } catch (e) {}
           });
         }
-
-        if (state.bestDays) {
-          g.fillStyle = COLOR.dim;
-          g.font = "11px sans-serif";
-          g.fillText("Best extinction: " + state.bestDays + " days", w / 2, by + bh + 22);
-        }
+        var back = drawButton(24, by, 70, bh, "BACK", false);
+        hit(back.x0, back.y0, back.x1, back.y1, function () { state.setupStep = "name"; });
       }
 
       function labelFor(id) {
@@ -447,13 +636,17 @@
         g.beginPath(); g.moveTo(0, mapTop); g.lineTo(w, mapTop); g.stroke();
 
         var tally = worldTally(state);
+        var kind = kindById(state.kind);
         g.fillStyle = COLOR.text;
-        g.font = "700 15px sans-serif";
+        g.font = "700 14px sans-serif";
         g.textAlign = "left";
-        g.fillText("Day " + state.day, 14, 24);
+        g.fillText((state.diseaseName || "Pathogen") + " · " + kind.name, 14, 18);
+        g.fillStyle = COLOR.dim;
+        g.font = "11px sans-serif";
+        g.fillText("Day " + state.day, 14, 34);
         g.fillStyle = COLOR.accent;
         g.font = "600 13px sans-serif";
-        g.fillText("DNA " + Math.floor(state.dna), 14, 44);
+        g.fillText("DNA " + Math.floor(state.dna), 14, 50);
 
         g.fillStyle = COLOR.dim;
         g.font = "11px sans-serif";
@@ -462,13 +655,11 @@
         g.fillText("Dead " + fmt(tally.dead), w - 14, 34);
         g.fillText("Cure " + Math.round(state.cureProgress * 100) + "%", w - 14, 48);
 
-        // cure progress bar
         g.fillStyle = "#1a2536";
         g.fillRect(14, 58, w - 28, 6);
         g.fillStyle = state.cureProgress > 0.7 ? COLOR.danger : COLOR.accent;
         g.fillRect(14, 58, (w - 28) * state.cureProgress, 6);
 
-        // speed controls
         var labels = [["II", 0], ["1x", 1], ["2x", 2], ["4x", 4]];
         var bw = 34, bh = 22, gap = 4;
         var startX = w - (bw * labels.length + gap * (labels.length - 1)) - 14;
@@ -499,22 +690,13 @@
           g.arc(p.x, p.y, r, 0, Math.PI * 2);
           g.fillStyle = countryColor(c, cs);
           g.fill();
-          if (cs.bordersClosed) {
-            g.lineWidth = 1.5;
-            g.strokeStyle = "#ffffff88";
-            g.stroke();
-          }
-          if (state.selected === c.id) {
-            g.lineWidth = 2;
-            g.strokeStyle = COLOR.accent;
-            g.stroke();
-          }
+          if (cs.bordersClosed) { g.lineWidth = 1.5; g.strokeStyle = "#ffffff88"; g.stroke(); }
+          if (state.selected === c.id) { g.lineWidth = 2; g.strokeStyle = COLOR.accent; g.stroke(); }
           hit(p.x - r - 4, p.y - r - 4, p.x + r + 4, p.y + r + 4, (function (id) {
             return function () { state.selected = id; try { ctx.platform.interact({ country: id }); } catch (e) {} };
           })(c.id));
         }
 
-        // info panel for selection
         var infoY = bot + 8;
         g.fillStyle = COLOR.panel;
         g.fillRect(0, infoY, w, 100);
@@ -545,7 +727,6 @@
         g.fillStyle = COLOR.bg;
         g.fillRect(0, top, w, listBottom - top);
 
-        // category selector
         var catY = top + 8, catH = 30;
         var cw = (w - 28) / CATS.length;
         for (var i = 0; i < CATS.length; i++) {
@@ -556,7 +737,6 @@
           })(CATS[i].id));
         }
 
-        // trait list (scrollable)
         var listTop = catY + catH + 8;
         var rowH = 58;
         var traits = TRAITS.filter(function (t) { return t.cat === state.activeCat; });
@@ -590,14 +770,15 @@
           g.fillText(t.name, 24, ry + 20);
           g.fillStyle = COLOR.dim;
           g.font = "11px sans-serif";
-          wrapText(t.desc, 24, ry + 36, w - 140);
+          wrapText(t.desc, 24, ry + 36, w - 140, 2);
 
           var bw = 68, bh = 30;
           var bx = w - 14 - bw, by = ry + rowH / 2 - bh / 2;
-          var label = owned ? "OWNED" : (locked ? "LOCKED" : (t.cost + " DNA"));
           var canAfford = canBuy(state, t);
-          var region2 = drawButton(bx, by, bw, bh, label, owned, locked || (!owned && !canAfford));
-          if (!owned && !locked) {
+          var maxed = !owned && !locked && !canAfford && state.dna >= t.cost;
+          var label = owned ? "OWNED" : (locked ? "LOCKED" : (maxed ? "MAXED" : (t.cost + " DNA")));
+          var region2 = drawButton(bx, by, bw, bh, label, owned, locked || maxed || (!owned && state.dna < t.cost));
+          if (!owned && !locked && !maxed) {
             hit(region2.x0, region2.y0, region2.x1, region2.y1, (function (tt) {
               return function () {
                 if (!canBuy(state, tt)) return;
@@ -618,10 +799,10 @@
           g.fillRect(w - 5, trackY, 3, trackH);
         }
 
-        hit(0, listTop, w, listBottom, function () {}); // reserve drag area (handled in pointer logic)
+        hit(0, listTop, w, listBottom, function () {});
       }
 
-      function wrapText(text, x, y, maxW) {
+      function wrapText(text, x, y, maxW, maxLines) {
         var words = text.split(" ");
         var line = "";
         var lines = [];
@@ -635,7 +816,8 @@
           }
         }
         lines.push(line);
-        for (var j = 0; j < Math.min(lines.length, 2); j++) g.fillText(lines[j].trim(), x, y + j * 13);
+        var n = maxLines || lines.length;
+        for (var j = 0; j < Math.min(lines.length, n); j++) g.fillText(lines[j].trim(), x, y + j * 13);
       }
 
       function renderStats(w, h) {
@@ -643,28 +825,42 @@
         g.fillStyle = COLOR.bg;
         g.fillRect(0, top, w, H() - top);
         var stats = ownedStats(state);
+        var kind = kindById(state.kind);
         var tally = worldTally(state);
+
+        var barY = top + 20;
+        var barDefs = [
+          ["Infectivity", stats.infectivity, kind.infMax, COLOR.accent],
+          ["Lethality", stats.lethality, kind.letMax, COLOR.danger],
+          ["Visibility", stats.visibility, kind.visMax, "#e0a52c"]
+        ];
+        g.textAlign = "left";
+        for (var i = 0; i < barDefs.length; i++) {
+          var d = barDefs[i];
+          g.fillStyle = COLOR.dim;
+          g.font = "12px sans-serif";
+          g.fillText(d[0], 18, barY + i * 34);
+          drawBar(18, barY + i * 34 + 6, w - 36, 10, d[1] / d[2], d[3]);
+        }
+
+        var rowsTop = barY + barDefs.length * 34 + 16;
         var rows = [
           ["Day", state.day],
           ["DNA available", Math.floor(state.dna)],
-          ["Total transmission", stats.transmission.toFixed(2)],
-          ["Total severity", stats.severity.toFixed(2)],
-          ["Total lethality", stats.lethality.toFixed(2)],
           ["Cure resistance", Math.round(stats.cureResist * 100) + "%"],
           ["World infected", fmt(tally.infected)],
           ["World dead", fmt(tally.dead) + " / " + fmt(TOTAL_POP)],
           ["Cure progress", Math.round(state.cureProgress * 100) + "%"]
         ];
-        g.textAlign = "left";
-        for (var i = 0; i < rows.length; i++) {
-          var ry = top + 24 + i * 30;
+        for (var r = 0; r < rows.length; r++) {
+          var ry = rowsTop + r * 28;
           g.fillStyle = COLOR.dim;
           g.font = "12px sans-serif";
-          g.fillText(rows[i][0], 18, ry);
+          g.fillText(rows[r][0], 18, ry);
           g.fillStyle = COLOR.text;
           g.font = "700 13px sans-serif";
           g.textAlign = "right";
-          g.fillText(String(rows[i][1]), w - 18, ry);
+          g.fillText(String(rows[r][1]), w - 18, ry);
           g.textAlign = "left";
         }
       }
@@ -696,12 +892,19 @@
         g.fillStyle = "rgba(3,6,10,0.86)";
         g.fillRect(0, 0, w, h);
         g.textAlign = "center";
+        var title = state.won ? "EXTINCTION" : (state.endReason === "cured" ? "CURE DEPLOYED" : "OUTBREAK CONTAINED");
+        var sub = state.won
+          ? "Humanity fell in " + state.day + " days."
+          : (state.endReason === "cured"
+            ? "A cure reached the world before you did. Eradicated on day " + state.day + "."
+            : "The strain burned out before it could spread far enough. Gone by day " + state.day + ".");
         g.fillStyle = state.won ? COLOR.accent : COLOR.danger;
         g.font = "700 24px sans-serif";
-        g.fillText(state.won ? "EXTINCTION" : "CURE DEPLOYED", w / 2, h * 0.42);
+        g.fillText(title, w / 2, h * 0.42);
         g.fillStyle = COLOR.text;
         g.font = "13px sans-serif";
-        g.fillText(state.won ? "Humanity fell in " + state.day + " days." : "The pathogen was eradicated on day " + state.day + ".", w / 2, h * 0.42 + 28);
+        wrapText(sub, w / 2, h * 0.42 + 24, w - 60, 2);
+        g.textAlign = "center";
 
         var bw = 200, bh = 44;
         var region = drawButton(w / 2 - bw / 2, h * 0.42 + 56, bw, bh, "PLAY AGAIN", true);
@@ -739,10 +942,7 @@
         if (dy < 8) {
           for (var i = hitRegions.length - 1; i >= 0; i--) {
             var r = hitRegions[i];
-            if (p.x >= r.x0 && p.x <= r.x1 && p.y >= r.y0 && p.y <= r.y1) {
-              r.fn();
-              break;
-            }
+            if (p.x >= r.x0 && p.x <= r.x1 && p.y >= r.y0 && p.y <= r.y1) { r.fn(); break; }
           }
         }
         render();
@@ -793,12 +993,9 @@
               if (state.won) {
                 try {
                   var best = ctx.storage ? ctx.storage.get("vz_best_days") : null;
-                  if (!best || state.day < best) {
-                    ctx.storage && ctx.storage.set("vz_best_days", state.day);
-                    state.bestDays = state.day;
-                  }
+                  if (!best || state.day < best) { ctx.storage && ctx.storage.set("vz_best_days", state.day); state.bestDays = state.day; }
                 } catch (e) {}
-                try { ctx.memory.record("extinction_days").submit(state.day, { label: "Vector Zero" }); } catch (e) {}
+                try { ctx.memory.record("extinction_days").submit(state.day, { label: state.diseaseName || "Vector Zero" }); } catch (e) {}
                 try { ctx.music.sting("success"); } catch (e) {}
                 try { ctx.platform.complete({ days: state.day, deaths: Math.round(tally.dead) }); } catch (e) {}
               } else {
