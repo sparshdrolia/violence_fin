@@ -13,98 +13,158 @@
   "use strict";
 
   // ---------------------------------------------------------------------
-  // World data — abstracted nations. Populations are rounded, illustrative
-  // figures used for gameplay balance, not a census dataset.
+  // World data — abstracted nations, placed by approximate real longitude
+  ///latitude so markers land on the right continent. Populations are
+  // rounded, illustrative figures used for gameplay balance, not a
+  // census dataset.
   // ---------------------------------------------------------------------
   var COUNTRIES = [
-    { id: "usa", name: "United States", x: 0.20, y: 0.35, pop: 335, wealth: 3, climate: "temperate" },
-    { id: "can", name: "Canada", x: 0.19, y: 0.20, pop: 39, wealth: 3, climate: "cold" },
-    { id: "mex", name: "Mexico", x: 0.18, y: 0.45, pop: 129, wealth: 2, climate: "arid" },
-    { id: "cub", name: "Cuba", x: 0.21, y: 0.44, pop: 11, wealth: 1, climate: "tropical" },
-    { id: "dom", name: "Dominican Republic", x: 0.23, y: 0.46, pop: 11, wealth: 1, climate: "tropical" },
-    { id: "gtm", name: "Guatemala", x: 0.17, y: 0.47, pop: 18, wealth: 1, climate: "tropical" },
+    { id: "usa", name: "United States", lon: -98, lat: 39, pop: 335, wealth: 3, climate: "temperate" },
+    { id: "can", name: "Canada", lon: -106, lat: 56, pop: 39, wealth: 3, climate: "cold" },
+    { id: "mex", name: "Mexico", lon: -102, lat: 23, pop: 129, wealth: 2, climate: "arid" },
+    { id: "cub", name: "Cuba", lon: -79, lat: 21.5, pop: 11, wealth: 1, climate: "tropical" },
+    { id: "dom", name: "Dominican Republic", lon: -70.5, lat: 19, pop: 11, wealth: 1, climate: "tropical" },
+    { id: "gtm", name: "Guatemala", lon: -90.5, lat: 15.5, pop: 18, wealth: 1, climate: "tropical" },
 
-    { id: "col", name: "Colombia", x: 0.24, y: 0.55, pop: 52, wealth: 1, climate: "tropical" },
-    { id: "ven", name: "Venezuela", x: 0.26, y: 0.52, pop: 28, wealth: 1, climate: "tropical" },
-    { id: "per", name: "Peru", x: 0.24, y: 0.63, pop: 34, wealth: 1, climate: "temperate" },
-    { id: "bra", name: "Brazil", x: 0.32, y: 0.62, pop: 216, wealth: 2, climate: "tropical" },
-    { id: "chl", name: "Chile", x: 0.26, y: 0.78, pop: 19, wealth: 2, climate: "temperate" },
-    { id: "arg", name: "Argentina", x: 0.29, y: 0.78, pop: 46, wealth: 2, climate: "temperate" },
-    { id: "bol", name: "Bolivia", x: 0.27, y: 0.65, pop: 12, wealth: 1, climate: "tropical" },
+    { id: "col", name: "Colombia", lon: -74, lat: 4, pop: 52, wealth: 1, climate: "tropical" },
+    { id: "ven", name: "Venezuela", lon: -66, lat: 8, pop: 28, wealth: 1, climate: "tropical" },
+    { id: "per", name: "Peru", lon: -76, lat: -10, pop: 34, wealth: 1, climate: "temperate" },
+    { id: "bra", name: "Brazil", lon: -52, lat: -10, pop: 216, wealth: 2, climate: "tropical" },
+    { id: "chl", name: "Chile", lon: -71, lat: -30, pop: 19, wealth: 2, climate: "temperate" },
+    { id: "arg", name: "Argentina", lon: -64, lat: -34, pop: 46, wealth: 2, climate: "temperate" },
+    { id: "bol", name: "Bolivia", lon: -65, lat: -17, pop: 12, wealth: 1, climate: "tropical" },
 
-    { id: "gbr", name: "United Kingdom", x: 0.47, y: 0.22, pop: 68, wealth: 3, climate: "temperate" },
-    { id: "irl", name: "Ireland", x: 0.45, y: 0.22, pop: 5, wealth: 3, climate: "temperate" },
-    { id: "fra", name: "France", x: 0.49, y: 0.27, pop: 68, wealth: 3, climate: "temperate" },
-    { id: "esp", name: "Spain", x: 0.46, y: 0.32, pop: 47, wealth: 3, climate: "arid" },
-    { id: "prt", name: "Portugal", x: 0.44, y: 0.32, pop: 10, wealth: 2, climate: "temperate" },
-    { id: "deu", name: "Germany", x: 0.51, y: 0.24, pop: 84, wealth: 3, climate: "temperate" },
-    { id: "nld", name: "Netherlands", x: 0.50, y: 0.23, pop: 18, wealth: 3, climate: "temperate" },
-    { id: "bel", name: "Belgium", x: 0.49, y: 0.24, pop: 12, wealth: 3, climate: "temperate" },
-    { id: "che", name: "Switzerland", x: 0.50, y: 0.26, pop: 9, wealth: 3, climate: "cold" },
-    { id: "ita", name: "Italy", x: 0.51, y: 0.30, pop: 59, wealth: 3, climate: "temperate" },
-    { id: "aut", name: "Austria", x: 0.52, y: 0.25, pop: 9, wealth: 3, climate: "cold" },
-    { id: "pol", name: "Poland", x: 0.52, y: 0.23, pop: 37, wealth: 2, climate: "cold" },
-    { id: "cze", name: "Czechia", x: 0.51, y: 0.24, pop: 11, wealth: 2, climate: "cold" },
-    { id: "hun", name: "Hungary", x: 0.52, y: 0.26, pop: 10, wealth: 2, climate: "temperate" },
-    { id: "rou", name: "Romania", x: 0.54, y: 0.26, pop: 19, wealth: 2, climate: "cold" },
-    { id: "grc", name: "Greece", x: 0.53, y: 0.30, pop: 10, wealth: 2, climate: "arid" },
-    { id: "swe", name: "Sweden", x: 0.51, y: 0.16, pop: 10, wealth: 3, climate: "cold" },
-    { id: "nor", name: "Norway", x: 0.50, y: 0.14, pop: 5, wealth: 3, climate: "cold" },
-    { id: "fin", name: "Finland", x: 0.53, y: 0.14, pop: 6, wealth: 3, climate: "cold" },
-    { id: "dnk", name: "Denmark", x: 0.50, y: 0.20, pop: 6, wealth: 3, climate: "cold" },
-    { id: "ukr", name: "Ukraine", x: 0.56, y: 0.22, pop: 38, wealth: 1, climate: "cold" },
-    { id: "srb", name: "Serbia", x: 0.53, y: 0.27, pop: 7, wealth: 2, climate: "temperate" },
-    { id: "rus", name: "Russia", x: 0.65, y: 0.18, pop: 144, wealth: 2, climate: "cold" },
+    { id: "gbr", name: "United Kingdom", lon: -2, lat: 54, pop: 68, wealth: 3, climate: "temperate" },
+    { id: "irl", name: "Ireland", lon: -8, lat: 53, pop: 5, wealth: 3, climate: "temperate" },
+    { id: "fra", name: "France", lon: 2, lat: 46, pop: 68, wealth: 3, climate: "temperate" },
+    { id: "esp", name: "Spain", lon: -4, lat: 40, pop: 47, wealth: 3, climate: "arid" },
+    { id: "prt", name: "Portugal", lon: -8, lat: 39.5, pop: 10, wealth: 2, climate: "temperate" },
+    { id: "deu", name: "Germany", lon: 10, lat: 51, pop: 84, wealth: 3, climate: "temperate" },
+    { id: "nld", name: "Netherlands", lon: 5.5, lat: 52, pop: 18, wealth: 3, climate: "temperate" },
+    { id: "bel", name: "Belgium", lon: 4.5, lat: 50.5, pop: 12, wealth: 3, climate: "temperate" },
+    { id: "che", name: "Switzerland", lon: 8, lat: 47, pop: 9, wealth: 3, climate: "cold" },
+    { id: "ita", name: "Italy", lon: 12.5, lat: 43, pop: 59, wealth: 3, climate: "temperate" },
+    { id: "aut", name: "Austria", lon: 14, lat: 47.5, pop: 9, wealth: 3, climate: "cold" },
+    { id: "pol", name: "Poland", lon: 19, lat: 52, pop: 37, wealth: 2, climate: "cold" },
+    { id: "cze", name: "Czechia", lon: 15.5, lat: 49.8, pop: 11, wealth: 2, climate: "cold" },
+    { id: "hun", name: "Hungary", lon: 19.5, lat: 47, pop: 10, wealth: 2, climate: "temperate" },
+    { id: "rou", name: "Romania", lon: 25, lat: 46, pop: 19, wealth: 2, climate: "cold" },
+    { id: "grc", name: "Greece", lon: 22, lat: 39, pop: 10, wealth: 2, climate: "arid" },
+    { id: "swe", name: "Sweden", lon: 15, lat: 62, pop: 10, wealth: 3, climate: "cold" },
+    { id: "nor", name: "Norway", lon: 9, lat: 61, pop: 5, wealth: 3, climate: "cold" },
+    { id: "fin", name: "Finland", lon: 26, lat: 64, pop: 6, wealth: 3, climate: "cold" },
+    { id: "dnk", name: "Denmark", lon: 10, lat: 56, pop: 6, wealth: 3, climate: "cold" },
+    { id: "ukr", name: "Ukraine", lon: 31.5, lat: 49, pop: 38, wealth: 1, climate: "cold" },
+    { id: "srb", name: "Serbia", lon: 21, lat: 44, pop: 7, wealth: 2, climate: "temperate" },
+    { id: "rus", name: "Russia", lon: 60, lat: 60, pop: 144, wealth: 2, climate: "cold" },
 
-    { id: "tur", name: "Turkey", x: 0.55, y: 0.31, pop: 85, wealth: 2, climate: "temperate" },
-    { id: "egy", name: "Egypt", x: 0.55, y: 0.41, pop: 112, wealth: 1, climate: "arid" },
-    { id: "mar", name: "Morocco", x: 0.46, y: 0.39, pop: 38, wealth: 1, climate: "arid" },
-    { id: "dza", name: "Algeria", x: 0.48, y: 0.40, pop: 45, wealth: 1, climate: "arid" },
-    { id: "sau", name: "Saudi Arabia", x: 0.58, y: 0.42, pop: 36, wealth: 3, climate: "arid" },
-    { id: "irq", name: "Iraq", x: 0.58, y: 0.37, pop: 44, wealth: 1, climate: "arid" },
-    { id: "irn", name: "Iran", x: 0.60, y: 0.37, pop: 89, wealth: 1, climate: "arid" },
-    { id: "isr", name: "Israel", x: 0.56, y: 0.38, pop: 9, wealth: 3, climate: "arid" },
-    { id: "are", name: "United Arab Emirates", x: 0.60, y: 0.43, pop: 10, wealth: 3, climate: "arid" },
-    { id: "yem", name: "Yemen", x: 0.59, y: 0.45, pop: 34, wealth: 1, climate: "arid" },
-    { id: "syr", name: "Syria", x: 0.57, y: 0.36, pop: 21, wealth: 1, climate: "arid" },
+    { id: "tur", name: "Turkey", lon: 35, lat: 39, pop: 85, wealth: 2, climate: "temperate" },
+    { id: "egy", name: "Egypt", lon: 30, lat: 27, pop: 112, wealth: 1, climate: "arid" },
+    { id: "mar", name: "Morocco", lon: -6, lat: 32, pop: 38, wealth: 1, climate: "arid" },
+    { id: "dza", name: "Algeria", lon: 3, lat: 28, pop: 45, wealth: 1, climate: "arid" },
+    { id: "sau", name: "Saudi Arabia", lon: 45, lat: 24, pop: 36, wealth: 3, climate: "arid" },
+    { id: "irq", name: "Iraq", lon: 44, lat: 33, pop: 44, wealth: 1, climate: "arid" },
+    { id: "irn", name: "Iran", lon: 53, lat: 32, pop: 89, wealth: 1, climate: "arid" },
+    { id: "isr", name: "Israel", lon: 35, lat: 31, pop: 9, wealth: 3, climate: "arid" },
+    { id: "are", name: "United Arab Emirates", lon: 54, lat: 24, pop: 10, wealth: 3, climate: "arid" },
+    { id: "yem", name: "Yemen", lon: 48, lat: 15.5, pop: 34, wealth: 1, climate: "arid" },
+    { id: "syr", name: "Syria", lon: 38.5, lat: 35, pop: 21, wealth: 1, climate: "arid" },
 
-    { id: "nga", name: "Nigeria", x: 0.50, y: 0.50, pop: 223, wealth: 1, climate: "tropical" },
-    { id: "cod", name: "DR Congo", x: 0.52, y: 0.56, pop: 102, wealth: 1, climate: "tropical" },
-    { id: "ken", name: "Kenya", x: 0.56, y: 0.55, pop: 55, wealth: 1, climate: "tropical" },
-    { id: "eth", name: "Ethiopia", x: 0.57, y: 0.52, pop: 126, wealth: 1, climate: "tropical" },
-    { id: "tza", name: "Tanzania", x: 0.56, y: 0.59, pop: 67, wealth: 1, climate: "tropical" },
-    { id: "uga", name: "Uganda", x: 0.55, y: 0.53, pop: 48, wealth: 1, climate: "tropical" },
-    { id: "gha", name: "Ghana", x: 0.48, y: 0.51, pop: 34, wealth: 1, climate: "tropical" },
-    { id: "sdn", name: "Sudan", x: 0.55, y: 0.47, pop: 48, wealth: 1, climate: "arid" },
-    { id: "zaf", name: "South Africa", x: 0.53, y: 0.73, pop: 60, wealth: 2, climate: "temperate" },
+    { id: "nga", name: "Nigeria", lon: 8, lat: 9.5, pop: 223, wealth: 1, climate: "tropical" },
+    { id: "cod", name: "DR Congo", lon: 23, lat: -2.5, pop: 102, wealth: 1, climate: "tropical" },
+    { id: "ken", name: "Kenya", lon: 38, lat: 0.5, pop: 55, wealth: 1, climate: "tropical" },
+    { id: "eth", name: "Ethiopia", lon: 40, lat: 9, pop: 126, wealth: 1, climate: "tropical" },
+    { id: "tza", name: "Tanzania", lon: 35, lat: -6, pop: 67, wealth: 1, climate: "tropical" },
+    { id: "uga", name: "Uganda", lon: 32, lat: 1, pop: 48, wealth: 1, climate: "tropical" },
+    { id: "gha", name: "Ghana", lon: -1, lat: 8, pop: 34, wealth: 1, climate: "tropical" },
+    { id: "sdn", name: "Sudan", lon: 30, lat: 15, pop: 48, wealth: 1, climate: "arid" },
+    { id: "zaf", name: "South Africa", lon: 24, lat: -29, pop: 60, wealth: 2, climate: "temperate" },
 
-    { id: "pak", name: "Pakistan", x: 0.65, y: 0.40, pop: 240, wealth: 1, climate: "arid" },
-    { id: "ind", name: "India", x: 0.68, y: 0.45, pop: 1428, wealth: 1, climate: "tropical" },
-    { id: "bgd", name: "Bangladesh", x: 0.71, y: 0.45, pop: 173, wealth: 1, climate: "tropical" },
-    { id: "npl", name: "Nepal", x: 0.69, y: 0.42, pop: 30, wealth: 1, climate: "cold" },
-    { id: "lka", name: "Sri Lanka", x: 0.69, y: 0.50, pop: 22, wealth: 1, climate: "tropical" },
-    { id: "kaz", name: "Kazakhstan", x: 0.66, y: 0.30, pop: 20, wealth: 2, climate: "cold" },
-    { id: "uzb", name: "Uzbekistan", x: 0.64, y: 0.34, pop: 35, wealth: 1, climate: "arid" },
-    { id: "afg", name: "Afghanistan", x: 0.63, y: 0.38, pop: 41, wealth: 1, climate: "arid" },
-    { id: "mng", name: "Mongolia", x: 0.75, y: 0.28, pop: 3, wealth: 1, climate: "cold" },
+    { id: "pak", name: "Pakistan", lon: 69, lat: 30, pop: 240, wealth: 1, climate: "arid" },
+    { id: "ind", name: "India", lon: 79, lat: 22, pop: 1428, wealth: 1, climate: "tropical" },
+    { id: "bgd", name: "Bangladesh", lon: 90, lat: 24, pop: 173, wealth: 1, climate: "tropical" },
+    { id: "npl", name: "Nepal", lon: 84, lat: 28, pop: 30, wealth: 1, climate: "cold" },
+    { id: "lka", name: "Sri Lanka", lon: 81, lat: 7.5, pop: 22, wealth: 1, climate: "tropical" },
+    { id: "kaz", name: "Kazakhstan", lon: 67, lat: 48, pop: 20, wealth: 2, climate: "cold" },
+    { id: "uzb", name: "Uzbekistan", lon: 64, lat: 41.5, pop: 35, wealth: 1, climate: "arid" },
+    { id: "afg", name: "Afghanistan", lon: 66, lat: 34, pop: 41, wealth: 1, climate: "arid" },
+    { id: "mng", name: "Mongolia", lon: 103, lat: 46.5, pop: 3, wealth: 1, climate: "cold" },
 
-    { id: "chn", name: "China", x: 0.75, y: 0.35, pop: 1411, wealth: 2, climate: "temperate" },
-    { id: "jpn", name: "Japan", x: 0.85, y: 0.34, pop: 123, wealth: 3, climate: "temperate" },
-    { id: "kor", name: "South Korea", x: 0.82, y: 0.35, pop: 52, wealth: 3, climate: "temperate" },
-    { id: "prk", name: "North Korea", x: 0.82, y: 0.32, pop: 26, wealth: 1, climate: "cold" },
+    { id: "chn", name: "China", lon: 104, lat: 35, pop: 1411, wealth: 2, climate: "temperate" },
+    { id: "jpn", name: "Japan", lon: 138, lat: 37, pop: 123, wealth: 3, climate: "temperate" },
+    { id: "kor", name: "South Korea", lon: 127.5, lat: 36, pop: 52, wealth: 3, climate: "temperate" },
+    { id: "prk", name: "North Korea", lon: 127, lat: 40, pop: 26, wealth: 1, climate: "cold" },
 
-    { id: "vnm", name: "Vietnam", x: 0.77, y: 0.46, pop: 98, wealth: 1, climate: "tropical" },
-    { id: "tha", name: "Thailand", x: 0.75, y: 0.47, pop: 71, wealth: 1, climate: "tropical" },
-    { id: "mmr", name: "Myanmar", x: 0.73, y: 0.45, pop: 54, wealth: 1, climate: "tropical" },
-    { id: "khm", name: "Cambodia", x: 0.76, y: 0.49, pop: 17, wealth: 1, climate: "tropical" },
-    { id: "lao", name: "Laos", x: 0.75, y: 0.45, pop: 8, wealth: 1, climate: "tropical" },
-    { id: "mys", name: "Malaysia", x: 0.76, y: 0.52, pop: 34, wealth: 2, climate: "tropical" },
-    { id: "sgp", name: "Singapore", x: 0.77, y: 0.53, pop: 6, wealth: 3, climate: "tropical" },
-    { id: "phl", name: "Philippines", x: 0.80, y: 0.48, pop: 117, wealth: 1, climate: "tropical" },
-    { id: "idn", name: "Indonesia", x: 0.78, y: 0.56, pop: 277, wealth: 1, climate: "tropical" },
+    { id: "vnm", name: "Vietnam", lon: 106, lat: 16, pop: 98, wealth: 1, climate: "tropical" },
+    { id: "tha", name: "Thailand", lon: 101, lat: 15, pop: 71, wealth: 1, climate: "tropical" },
+    { id: "mmr", name: "Myanmar", lon: 96, lat: 21, pop: 54, wealth: 1, climate: "tropical" },
+    { id: "khm", name: "Cambodia", lon: 105, lat: 12.5, pop: 17, wealth: 1, climate: "tropical" },
+    { id: "lao", name: "Laos", lon: 103, lat: 18, pop: 8, wealth: 1, climate: "tropical" },
+    { id: "mys", name: "Malaysia", lon: 112, lat: 3.5, pop: 34, wealth: 2, climate: "tropical" },
+    { id: "sgp", name: "Singapore", lon: 103.8, lat: 1.3, pop: 6, wealth: 3, climate: "tropical" },
+    { id: "phl", name: "Philippines", lon: 122, lat: 13, pop: 117, wealth: 1, climate: "tropical" },
+    { id: "idn", name: "Indonesia", lon: 113, lat: -2, pop: 277, wealth: 1, climate: "tropical" },
 
-    { id: "aus", name: "Australia", x: 0.83, y: 0.72, pop: 26, wealth: 3, climate: "arid" },
-    { id: "nzl", name: "New Zealand", x: 0.87, y: 0.78, pop: 5, wealth: 3, climate: "temperate" }
+    { id: "aus", name: "Australia", lon: 134, lat: -25, pop: 26, wealth: 3, climate: "arid" },
+    { id: "nzl", name: "New Zealand", lon: 172, lat: -41, pop: 5, wealth: 3, climate: "temperate" }
+  ];
+
+  function projectLL(lon, lat) {
+    return { x: (lon + 180) / 360, y: (90 - lat) / 180 };
+  }
+  for (var ci = 0; ci < COUNTRIES.length; ci++) {
+    var cll = projectLL(COUNTRIES[ci].lon, COUNTRIES[ci].lat);
+    COUNTRIES[ci].x = cll.x;
+    COUNTRIES[ci].y = cll.y;
+  }
+
+  // Simplified, hand-authored low-poly continent silhouettes (lon/lat
+  // vertices) used only as a visual backdrop so markers read as sitting
+  // on a real world map rather than floating in a void. Not traced from
+  // any map product — a stylized approximation of coastlines.
+  var LANDMASSES = [
+    [ // North America
+      [-165, 68], [-140, 70], [-95, 73], [-65, 68], [-55, 52], [-60, 46],
+      [-70, 42], [-75, 35], [-80, 26], [-97, 26], [-88, 21], [-92, 14],
+      [-83, 9], [-80, 8], [-85, 13], [-95, 16], [-105, 20], [-112, 24],
+      [-115, 30], [-117, 33], [-124, 42], [-124, 48], [-130, 55],
+      [-140, 60], [-165, 60]
+    ],
+    [ // South America
+      [-77, 12], [-60, 10], [-50, 0], [-35, -6], [-38, -15], [-40, -22],
+      [-48, -27], [-57, -35], [-65, -55], [-72, -52], [-71, -33],
+      [-70, -18], [-81, -5], [-79, 2]
+    ],
+    [ // Africa
+      [-17, 21], [10, 37], [25, 32], [34, 31], [43, 12], [40, -1],
+      [35, -25], [20, -35], [12, -18], [9, 4], [-10, 6], [-17, 15]
+    ],
+    [ // Eurasia (Europe through Russia, China, South & Southeast Asia mainland)
+      [-10, 43], [-9, 53], [5, 51], [10, 54], [25, 60], [30, 68],
+      [40, 70], [60, 72], [100, 75], [140, 73], [170, 66], [160, 55],
+      [135, 43], [122, 31], [110, 20], [100, 10], [95, 16], [80, 8],
+      [72, 20], [61, 25], [50, 30], [35, 30], [27, 37], [23, 40],
+      [13, 45], [3, 44]
+    ],
+    [ // Indonesia / Malay archipelago
+      [95, 5], [106, -6], [120, -9], [135, -4], [140, -8], [120, 2], [105, 3]
+    ],
+    [ // Philippines
+      [120, 19], [124, 17], [126, 8], [122, 6], [119, 11]
+    ],
+    [ // Japan
+      [130, 45], [142, 43], [140, 35], [140, 31], [131, 34]
+    ],
+    [ // United Kingdom & Ireland
+      [-8, 59], [-3, 59], [1, 53], [1, 50], [-6, 50], [-11, 54]
+    ],
+    [ // Australia
+      [113, -22], [129, -15], [136, -12], [145, -15], [153, -28],
+      [150, -37], [140, -38], [131, -32], [115, -34]
+    ],
+    [ // New Zealand
+      [173, -34], [178, -38], [175, -42], [167, -45], [172, -40]
+    ]
   ];
 
   var DISEASE_KINDS = [
@@ -434,12 +494,30 @@
       var mapTop = 78;
       function mapBottom() { return H() - 190 - safeBottom(); }
 
+      function regionPoint(nx, ny, top, bot, w, pad) {
+        return { x: pad + nx * (w - pad * 2), y: top + ny * (bot - top) };
+      }
       function countryScreenPos(c) {
-        var pad = 14;
-        var mh = mapBottom() - mapTop;
-        return { x: pad + c.x * (W() - pad * 2), y: mapTop + c.y * mh };
+        return regionPoint(c.x, c.y, mapTop, mapBottom(), W(), 14);
       }
       function countryRadius(c) { return clamp(Math.sqrt(c.pop) * 0.85, 3.5, 24); }
+      function drawLandmasses(top, bot, w, pad) {
+        g.fillStyle = "#16324a";
+        g.strokeStyle = "#24507a";
+        g.lineWidth = 1;
+        for (var m = 0; m < LANDMASSES.length; m++) {
+          var poly = LANDMASSES[m];
+          g.beginPath();
+          for (var v = 0; v < poly.length; v++) {
+            var ll = projectLL(poly[v][0], poly[v][1]);
+            var p = regionPoint(ll.x, ll.y, top, bot, w, pad);
+            if (v === 0) g.moveTo(p.x, p.y); else g.lineTo(p.x, p.y);
+          }
+          g.closePath();
+          g.fill();
+          g.stroke();
+        }
+      }
       function countryColor(c, cs) {
         var consumedFrac = (cs.infected + cs.dead) / c.pop;
         var deadShare = cs.dead / Math.max(cs.infected + cs.dead, 0.0001);
@@ -589,11 +667,13 @@
 
         var top = h * 0.24, bot = h * 0.68;
         var pad = 14;
+        g.fillStyle = COLOR.ocean;
+        g.fillRect(pad, top, w - pad * 2, bot - top);
+        drawLandmasses(top, bot, w, pad);
         for (var i = 0; i < COUNTRIES.length; i++) {
           var c = COUNTRIES[i];
-          var mh = bot - top;
-          var px = pad + c.x * (w - pad * 2);
-          var py = top + c.y * mh;
+          var pz = regionPoint(c.x, c.y, top, bot, w, pad);
+          var px = pz.x, py = pz.y;
           var r = countryRadius(c) * 0.8;
           g.beginPath();
           g.arc(px, py, r, 0, Math.PI * 2);
@@ -680,6 +760,7 @@
         var top = mapTop, bot = mapBottom();
         g.fillStyle = COLOR.ocean;
         g.fillRect(0, top, w, bot - top);
+        drawLandmasses(top, bot, w, 14);
 
         for (var i = 0; i < COUNTRIES.length; i++) {
           var c = COUNTRIES[i];
