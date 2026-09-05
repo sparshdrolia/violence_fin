@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "runtime": "plethora-bit@2",
   "entry": "main.js",
-  "title": "Frosty's Dinner Rush",
-  "description": "Seat penguin diners, take their orders, and race to plate fish, sushi, soda and cake before their patience melts away. A tap-to-serve time-management rush inspired by classic penguin restaurant games.",
-  "tags": ["game", "time-management", "penguin", "restaurant", "arcade", "tap"],
+  "title": "Penguin Diner",
+  "description": "A modern remake of the classic penguin restaurant time-management game. Greet diners before their patience runs out, walk your waitress to the kitchen to build each order ingredient-by-ingredient, then carry the tray back to serve. Earn coins across days and spend them on upgrades between shifts.",
+  "tags": ["game", "time-management", "penguin", "restaurant", "diner", "arcade"],
   "permissions": ["haptics", "storage"],
   "dependencies": []
 }
