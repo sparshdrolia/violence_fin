@@ -995,14 +995,44 @@
         });
       }
 
-      function pointFromEvent(e) {
+      function pointFromClient(cx, cy) {
         var rect = canvasEl && canvasEl.getBoundingClientRect ? canvasEl.getBoundingClientRect() : { left: 0, top: 0 };
-        var cx = (e.clientX != null ? e.clientX : (e.touches && e.touches[0] && e.touches[0].clientX) || 0);
-        var cy = (e.clientY != null ? e.clientY : (e.touches && e.touches[0] && e.touches[0].clientY) || 0);
         return { x: cx - rect.left, y: cy - rect.top };
+      }
+      function pointFromEvent(e) {
+        var t = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]);
+        var cx = t ? t.clientX : e.clientX;
+        var cy = t ? t.clientY : e.clientY;
+        return pointFromClient(cx || 0, cy || 0);
+      }
+      function preventIfPossible(e) {
+        // On a real touchscreen, a passive/undeclared listener means
+        // preventDefault() here is a silent no-op and the OS can hijack
+        // the gesture as a page scroll/pinch, which then delivers
+        // pointercancel instead of pointerup and no tap ever registers.
+        // The explicit touch-action:none below plus {passive:false} on
+        // the listener registration are what make this actually work.
+        try { if (e.cancelable) e.preventDefault(); } catch (err) {}
+      }
+
+      var lastTapAt = 0;
+      var lastTapXY = null;
+      function dispatchTap(x, y) {
+        var now = (typeof performance !== "undefined" ? performance.now() : Date.now());
+        if (lastTapXY && now - lastTapAt < 350 && Math.abs(x - lastTapXY.x) < 6 && Math.abs(y - lastTapXY.y) < 6) {
+          return; // a second event path (e.g. synthesized click) for the same physical tap
+        }
+        lastTapAt = now;
+        lastTapXY = { x: x, y: y };
+        for (var i = hitRegions.length - 1; i >= 0; i--) {
+          var r = hitRegions[i];
+          if (x >= r.x0 && x <= r.x1 && y >= r.y0 && y <= r.y1) { r.fn(); break; }
+        }
+        render();
       }
 
       function onDown(e) {
+        preventIfPossible(e);
         var p = pointFromEvent(e);
         state.dragging = true;
         state.dragStartY = p.y;
@@ -1010,6 +1040,7 @@
       }
       function onMove(e) {
         if (!state.dragging) return;
+        preventIfPossible(e);
         var p = pointFromEvent(e);
         var dy = p.y - state.dragStartY;
         if (state.activeTab === "evolve" && Math.abs(dy) > 4) {
@@ -1019,21 +1050,34 @@
       function onUp(e) {
         var p = pointFromEvent(e);
         var dy = Math.abs(p.y - state.dragStartY);
+        var wasDragging = state.dragging;
         state.dragging = false;
-        if (dy < 8) {
-          for (var i = hitRegions.length - 1; i >= 0; i--) {
-            var r = hitRegions[i];
-            if (p.x >= r.x0 && p.x <= r.x1 && p.y >= r.y0 && p.y <= r.y1) { r.fn(); break; }
-          }
-        }
-        render();
+        if (wasDragging && dy < 8) dispatchTap(p.x, p.y);
+        else render();
+      }
+      function onCancel() { state.dragging = false; }
+      function onClickFallback(e) {
+        // Safety net in case pointer events never fire on some runtime/
+        // device combination — a plain click still gets us a working tap.
+        var p = pointFromClient(e.clientX, e.clientY);
+        dispatchTap(p.x, p.y);
       }
 
       if (canvasEl) {
-        ctx.listen(canvasEl, "pointerdown", onDown);
-        ctx.listen(canvasEl, "pointermove", onMove);
-        ctx.listen(canvasEl, "pointerup", onUp);
-        ctx.listen(canvasEl, "pointercancel", function () { state.dragging = false; });
+        if (canvasEl.style) {
+          canvasEl.style.touchAction = "none";
+          canvasEl.style.userSelect = "none";
+        }
+        var noPassive = { passive: false };
+        ctx.listen(canvasEl, "pointerdown", onDown, noPassive);
+        ctx.listen(canvasEl, "pointermove", onMove, noPassive);
+        ctx.listen(canvasEl, "pointerup", onUp, noPassive);
+        ctx.listen(canvasEl, "pointercancel", onCancel);
+        ctx.listen(canvasEl, "touchstart", onDown, noPassive);
+        ctx.listen(canvasEl, "touchmove", onMove, noPassive);
+        ctx.listen(canvasEl, "touchend", onUp, noPassive);
+        ctx.listen(canvasEl, "touchcancel", onCancel);
+        ctx.listen(canvasEl, "click", onClickFallback);
       }
 
       render();
