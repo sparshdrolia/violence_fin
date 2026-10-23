@@ -37,3 +37,6 @@ No source code, art, or copy from that project is reproduced in this repo.
 Population figures, map coordinates, disease-kind system, trait costs and
 effects, rendering, and all simulation/game logic in `bit/main.js` are
 original to Vector Zero.
+
+`penguin-diner/main.js` (Penguin Diner) is an original time-management game. All
+art is drawn procedurally; no code, art, or text from other games is reproduced.
