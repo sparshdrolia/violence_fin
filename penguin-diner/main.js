@@ -1,3 +1,4 @@
+// Plethora Bit · docs and draft upload: https://agent.plethora.studio/v1/agent/start.md
 // Penguin Diner — seat penguins, take orders, serve fish, collect tips.
 // Original design & implementation for the Plethora Bit runtime (plethora-bit@2).
 // All art is drawn procedurally on the canvas; no external assets, code or
@@ -160,20 +161,17 @@
   window.plethoraBit = {
     meta: { name: "Penguin Diner" },
     async init(ctx) {
-      var surface = ctx.createCanvas2D({ touchAction: "none" });
-      var canvasEl = (surface && (surface.canvas || surface.element || surface.el)) || surface;
-      var g = (surface && (surface.ctx || surface.context)) || (canvasEl && canvasEl.getContext && canvasEl.getContext("2d"));
+      var canvasEl = ctx.createCanvas2D({ touchAction: "none", coordinateSpace: "css", maxDpr: 2 });
+      var g = canvasEl.getContext("2d");
 
       function W() { return ctx.width || (canvasEl && canvasEl.width) || 360; }
       function H() { return ctx.height || (canvasEl && canvasEl.height) || 640; }
 
       var save = defaultSave();
       try {
-        var rawSave = ctx.storage && ctx.storage.get("pd_save");
-        if (typeof rawSave === "string") rawSave = JSON.parse(rawSave);
-        save = sanitizeSave(rawSave);
+        save = sanitizeSave(ctx.storage.get("pd_save"));
       } catch (e) { save = defaultSave(); }
-      function persist() { try { ctx.storage && ctx.storage.set("pd_save", JSON.stringify(save)); } catch (e) {} }
+      function persist() { try { ctx.storage.set("pd_save", save); } catch (e) {} }
       function haptic(kind) { try { ctx.platform.haptic(kind); } catch (e) {} }
 
       var screen = "title";   // title | shop | play | results
@@ -186,6 +184,9 @@
       var drag = { on: false, y0: 0, s0: 0, moved: false };
       var scale = 1, offX = 0, offY = 0;
       var toast = { text: "", t: 0 };
+      var score = null;
+      try { score = ctx.game.score(); } catch (e) {}
+      function setScore(v) { try { if (score) score.set(Math.round(v)); } catch (e) {} }
 
       function lvl(id) { return save.up[id] || 0; }
       function theme() { return byId(THEMES, save.theme); }
@@ -329,7 +330,7 @@
         floatText(c.x, c.y - 90, "Angry!", "#ff5a4d", 18);
         haptic("warning");
         if (c.type === "critic") {
-          G.earned = Math.max(0, G.earned - 50);
+          G.earned = Math.max(0, G.earned - 50); setScore(G.earned);
           say("THE CRITIC STORMS OUT! -$50");
         }
       }
@@ -417,7 +418,8 @@
 
       function collectTable(t) {
         var amt = t.pay * (G.golden > 0 ? 2 : 1);
-        G.earned += amt; G.regBump = 1;
+        G.earned += amt; G.regBump = 1; setScore(G.earned);
+        try { ctx.music.sting("coin"); } catch (e) {}
         floatText(t.x, t.y - 30, "+$" + amt, "#ffe14a", 20);
         t.pay = 0; t.state = "free"; t.cleanT = 0;
         haptic("success");
@@ -640,8 +642,9 @@
       function startShift() {
         if (!G || G.state !== "ready") return;
         G.state = "run"; G.spawnT = 1.2;
+        setScore(0);
         try { ctx.platform.start({ day: G.day, goal: G.goal }); } catch (e) {}
-        try { if (save.music) { ctx.music.play(); ctx.music.setVolume(0.4); } } catch (e) {}
+        playMusic();
         haptic("light");
       }
 
@@ -663,14 +666,14 @@
         }
         persist();
         screen = "results";
-        try { ctx.platform.setScore(Math.round(save.totalEarned)); } catch (e) {}
+        setScore(G.earned);
         try { ctx.platform.milestone("day_" + G.day + (G.success ? "_cleared" : "_failed")); } catch (e) {}
         if (G.success) {
           try { ctx.music.sting("success"); } catch (e) {}
           try { ctx.platform.complete({ day: G.day, earned: G.earned, stars: G.stars }); } catch (e) {}
           try { ctx.memory.record("day_reached").submit(G.day, { label: "Day " + G.day }); } catch (e) {}
         } else {
-          try { ctx.music.sting("warning"); } catch (e) {}
+          try { ctx.music.sting("fail"); } catch (e) {}
           try { ctx.platform.fail({ day: G.day, earned: G.earned }); } catch (e) {}
         }
         try { ctx.memory.record("best_shift_earnings").submit(G.earned, { label: "Day " + G.day }); } catch (e) {}
@@ -1446,9 +1449,15 @@
         button(VW / 2 - 100, 308, 200, 34, "QUIT SHIFT", { color: "#c0392b", dark: "#7e231a", size: 14, fn: function () { paused = false; screen = "title"; G = null; } });
       }
 
+      var musicOn = false;
+      function playMusic() {
+        if (!save.music || musicOn) return;
+        try { ctx.music.unlock(); ctx.music.play("cozy"); ctx.music.setVolume(0.4); musicOn = true; } catch (e) {}
+      }
       function toggleMusic() {
         save.music = !save.music; persist();
-        try { if (save.music) { ctx.music.play(); ctx.music.setVolume(0.4); } else { ctx.music.setVolume(0); } } catch (e) {}
+        if (save.music) playMusic();
+        else { try { ctx.music.stop({ fadeOutMs: 200 }); } catch (e) {} musicOn = false; }
       }
 
       function drawResults(th) {
@@ -1503,7 +1512,7 @@
         drawPenguin(VW / 2 - 232, 236 + bob, { s: 0.8, face: 1, hat: "bonnet", apron: "#f9c5dc" });
         drawPenguin(VW / 2 + 236, 236 + bob, { s: 0.8, face: -1, scarf: "#ee6fa9" });
         var cont = save.day > 1;
-        button(VW / 2 - 110, 262, 220, 50, cont ? "CONTINUE - DAY " + save.day : "PLAY", { size: 20, color: "#43b04a", dark: "#25702b", fn: function () { newShift(save.day); screen = "play"; } });
+        button(VW / 2 - 110, 262, 220, 50, cont ? "CONTINUE - DAY " + save.day : "PLAY", { size: 20, color: "#43b04a", dark: "#25702b", fn: function () { newShift(save.day); screen = "play"; playMusic(); } });
         button(VW / 2 - 110, 324, 106, 40, "SHOP", { size: 16, color: "#3f9bea", dark: "#1f5f9e", fn: function () { shop.from = "title"; shop.scroll = 0; screen = "shop"; } });
         button(VW / 2 + 4, 324, 106, 40, save.music ? "MUSIC ON" : "MUSIC OFF", { size: 13, color: "#8a6fd6", dark: "#58449a", fn: toggleMusic });
         panel(VW / 2 - 150, 378, 300, 56, "rgba(20,45,70,0.82)");
@@ -1679,11 +1688,23 @@
       function render() {
         hitRegions.length = 0;
         var w = W(), h = H();
-        scale = Math.min(w / VW, h / VH);
-        offX = (w - VW * scale) / 2; offY = (h - VH * scale) / 2;
+        // Keep the whole playfield inside the content safe area (clear of the
+        // camera cutout and the logo button); the background runs edge to edge.
+        var area = ctx.contentSafeArea || ctx.safeArea || { top: 0, right: 0, bottom: 0, left: 0 };
+        var aw = Math.max(50, w - (area.left || 0) - (area.right || 0));
+        var ah = Math.max(50, h - (area.top || 0) - (area.bottom || 0));
+        scale = Math.min(aw / VW, ah / VH);
+        offX = (area.left || 0) + (aw - VW * scale) / 2;
+        offY = (area.top || 0) + (ah - VH * scale) / 2;
         var th = theme();
-        g.setTransform(1, 0, 0, 1, 0, 0);
+        var bgp = G && screen !== "title" && screen !== "shop" ? clamp(G.time / G.dayLen, 0, 1) : 0.92;
+        var skyc = skyColors(th, bgp);
         g.fillStyle = th.ground; g.fillRect(0, 0, w, h);
+        var skyG = g.createLinearGradient(0, 0, 0, offY + 56 * scale);
+        skyG.addColorStop(0, skyc[0]); skyG.addColorStop(1, skyc[1]);
+        g.fillStyle = skyG; g.fillRect(0, 0, w, offY + 56 * scale);
+        g.fillStyle = th.sea[0]; g.fillRect(0, offY + 52 * scale, w, 60 * scale);
+        if (screen === "shop") { g.fillStyle = "#13293d"; g.fillRect(0, 0, w, h); }
         g.save();
         g.translate(offX, offY); g.scale(scale, scale);
         g.beginPath(); g.rect(0, 0, VW, VH); g.clip();
@@ -1704,7 +1725,7 @@
           }
         } catch (err) {
           g.restore();
-          try { ctx.platform.log && ctx.platform.log("render error: " + err.message); } catch (e2) {}
+          try { ctx.platform.error(err); } catch (e2) {}
           g.save();
           g.fillStyle = "#fff"; g.font = "12px sans-serif"; g.fillText("render error: " + err.message, 10, 20);
         }
@@ -1776,16 +1797,14 @@
       }
 
       // Test/debug hook so automated checks can inspect the live game.
-      try { window.__penguinDiner = { get G() { return G; }, get save() { return save; }, get screen() { return screen; }, regions: hitRegions, set paused(v) { paused = v; }, get D() { return D; } }; } catch (e) {}
+      try { if (window.__PD_TEST__) window.__penguinDiner = { get G() { return G; }, get save() { return save; }, get screen() { return screen; }, get view() { return { scale: scale, offX: offX, offY: offY }; }, regions: hitRegions, set paused(v) { paused = v; }, get D() { return D; } }; } catch (e) {}
 
       render();
       try { ctx.platform.ready(); } catch (e) {}
 
-      ctx.onFrame(function (dtMs) {
-        var dt = Math.min(0.05, (dtMs || 16) / 1000);
-        update(dt);
-        render();
-      });
+      function tick(dtMs) { update(Math.min(0.05, (dtMs || 16) / 1000)); }
+      if (ctx.game && ctx.game.loop) ctx.game.loop({ update: tick, render: render });
+      else ctx.onFrame(function (dtMs) { tick(dtMs); render(); });
 
       ctx.onDestroy(function () {
         persist();

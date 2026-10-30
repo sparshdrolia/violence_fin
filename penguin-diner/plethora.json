@@ -4,8 +4,19 @@
   "entry": "main.js",
   "title": "Penguin Diner",
   "description": "Run a frozen-sea diner: seat penguins, take orders, serve fish, collect tips. Play endless day shifts, then spend your earnings on upgrades, boosts, themes and ships.",
-  "tags": ["arcade", "time-management", "restaurant", "penguins", "casual", "upgrades"],
-  "permissions": ["backgroundMusic", "haptics", "storage"],
+  "tags": [
+    "arcade",
+    "time-management",
+    "restaurant",
+    "penguins",
+    "casual",
+    "upgrades"
+  ],
+  "permissions": [
+    "backgroundMusic",
+    "haptics",
+    "storage"
+  ],
   "dependencies": [],
   "memory": {
     "local": {},
@@ -31,5 +42,11 @@
     },
     "tallies": {},
     "worlds": {}
+  },
+  "display": "fullscreen",
+  "onboarding": {
+    "kind": "one_line",
+    "version": 1,
+    "message": "Seat penguins, take orders, serve fish, earn tips!"
   }
 }
